@@ -5,6 +5,8 @@ import contextlib
 import logging
 import os
 import re
+import requests
+import shutil
 import subprocess
 import webbrowser
 
@@ -14,6 +16,8 @@ from teuthology import contextutil
 from teuthology import misc
 
 log = logging.getLogger(__name__)
+
+ICE_VERSION_DEFAULT = '1.2.2'
 
 
 @contextlib.contextmanager
@@ -29,11 +33,15 @@ def task(ctx, config):
     Options are:
 
     version -- ceph version we are testing against (defaults to 80.1)
-    ice_tool_dir -- local directory where ice-tool either exists or will
+    ice_tool_dir -- optional local directory where ice-tool exists or will
                     be loaded (defaults to src in home directory)
-    iceball_location -- location of preconfigured iceball (defaults to .)
-                        If iceball_location is '.', then we try to build
-                        a gz file using the ice_tool_dir commands.
+    ice_version  -- version of ICE we're testing (with default)
+    iceball_location -- Can be an HTTP URL, in which case fetch from this
+                        location, using 'ice_version' and distro information
+                        to select the right tarball.  Can also be a local
+                        path.  If local path is '.', and iceball is
+                        not already present, then we try to build
+                        an iceball using the ice_tool_dir commands.
     ice_git_location -- location of ice tool on git
     start_browser -- If True, start a browser.  To be used by runs that will
                      bring up a browser quickly for human use.  Set to False
@@ -146,6 +154,25 @@ def fix_yum_repos(remote, distro):
     return True
 
 
+def get_iceball_with_http(urlbase, ice_version, ice_distro, destdir):
+    '''
+    Copy iceball with http to destdir
+    '''
+    url = '/'.join((
+        urlbase,
+        '{ver}/ICE-{ver}-{distro}.tar.gz'.format(
+            ver=ice_version, distro=ice_distro
+        )
+    ))
+    # stream=True means we don't download until copyfileobj below,
+    # and don't need a temp file
+    r = requests.get(url, stream=True)
+    filename = url.split('/')[-1]
+    with open(filename, 'w') as f:
+        shutil.copyfileobj(r.raw, f)
+    log.info('saved %s as %s' % (url, filename))
+
+
 @contextlib.contextmanager
 def calamari_install(config, cal_svr):
     """
@@ -179,7 +206,11 @@ def calamari_install(config, cal_svr):
         ice_distro = convert[ice_distro]
     log.info('calamari server on %s' % ice_distro)
     iceball_loc = config.get('iceball_location', '.')
-    if iceball_loc == '.':
+    ice_version = config.get('ice_version', ICE_VERSION_DEFAULT)
+    if iceball_loc.startswith('http'):
+        get_iceball_with_http(iceball_loc, ice_version, ice_distro, '.')
+        iceball_loc = '.'
+    elif iceball_loc == '.':
         ice_tool_loc = os.path.join(ice_tool_dir, 'ice-tools')
         if not os.path.isdir(ice_tool_loc):
             try:
