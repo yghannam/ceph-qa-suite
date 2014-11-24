@@ -3,4 +3,19 @@ upgrade-sequence:
    - install.upgrade:
        mon.a:
        mon.b:
-   - ceph.restart: [mon.a, mon.b, mon.c, mds.a, osd.0, osd.1, osd.2, osd.3]
+   - ceph.restart: 
+       daemons: [mon.a]
+       wait-for-healthy: false
+   - sleep:
+       duration: 60
+   - ceph.restart: 
+       daemons: [mon.b]
+       wait-for-healthy: false
+   - sleep:
+       duration: 60
+   - ceph.restart: 
+       daemons: [mon.c]
+       wait-for-healthy: false 
+   - sleep:
+       duration: 60
+   - ceph.restart: [mds.a,osd.0, osd.1, osd.2, osd.3]
