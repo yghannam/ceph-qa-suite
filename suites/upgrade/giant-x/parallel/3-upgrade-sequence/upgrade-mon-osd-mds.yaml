@@ -5,7 +5,7 @@ upgrade-sequence:
    - print: "**** done install.upgrade mon.a to the version from teuthology-suite arg"
    - ceph.restart:
        daemons: [mon.a]
-       wait-for-healthy: true
+       wait-for-healthy: false
    - sleep:
        duration: 60
    - ceph.restart:
@@ -26,8 +26,13 @@ upgrade-sequence:
        mon.b:
    - print: "**** done install.upgrade mon.b to the version from teuthology-suite arg"
    - ceph.restart:
-       daemons: [mon.b, mon.c]
-       wait-for-healthy: true
+       daemons: [mon.b]
+       wait-for-healthy: false
+   - sleep:
+       duration: 60
+   - ceph.restart:
+       daemons: [mon.c]
+       wait-for-healthy: false
    - sleep:
        duration: 60
    - ceph.restart:
