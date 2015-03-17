@@ -7,6 +7,8 @@ overrides:
         osd map cache size: 1
         osd scrub min interval: 60
         osd scrub max interval: 120
+        osd debug delay activate prob: 5
+        osd debug delay activate: 30
 tasks:
 - install:
 - ceph:
