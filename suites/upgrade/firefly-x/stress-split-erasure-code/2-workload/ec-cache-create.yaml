@@ -19,7 +19,7 @@ tasks:
 - exec:
     client.0:
       - ceph osd deep-scrub '*'
--sequential:
+- sequential:
   - rados:
       clients: [client.0]
       pools: [ecbase]
