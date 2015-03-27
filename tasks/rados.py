@@ -15,6 +15,9 @@ def task(ctx, config):
     """
     Run RadosModel-based integration tests.
 
+    The tests are run asynchronously, they are not complete when the task
+    returns.
+
     The config should be as follows::
 
         rados:
