@@ -5,6 +5,10 @@ overrides:
       osd:
         osd objectstore: memstore
         memstore device bytes: 100000000
+overrides:
+  ceph:
+    log-whitelist:
+      - OSD full dropping all updates
 
 tasks:
   - cephfs_test_runner:
