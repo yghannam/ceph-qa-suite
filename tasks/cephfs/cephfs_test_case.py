@@ -59,7 +59,7 @@ class CephFSTestCase(unittest.TestCase):
 
         if self.REQUIRE_ONE_CLIENT_REMOTE:
             if self.mounts[0].client_remote.hostname in self.fs.get_mds_hostnames():
-                raise case.SkipTest("Require first client to on separate server from MDSs")
+                raise case.SkipTest("Require first client to be on separate server from MDSs")
 
         # Unmount all surplus clients
         for i in range(self.CLIENTS_REQUIRED, len(self.mounts)):
