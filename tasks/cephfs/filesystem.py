@@ -491,9 +491,12 @@ class Filesystem(object):
 
         return json.loads(p.stdout.getvalue().strip())
 
-    def data_objects_present(self, ino, size):
+    def _enumerate_data_objects(self, ino, size):
         """
-        Check that *all* the expected data objects for an inode are present in the data pool
+        Get the list of expected data objects for a range, and the list of objects
+        that really exist.
+
+        :return a tuple of two lists of strings (expected, actual)
         """
         stripe_size = 1024 * 1024 * 4
 
@@ -506,6 +509,14 @@ class Filesystem(object):
 
         exist_objects = self.rados(["ls"], pool=self.get_data_pool_name()).split("\n")
 
+        return want_objects, exist_objects
+
+    def data_objects_present(self, ino, size):
+        """
+        Check that *all* the expected data objects for an inode are present in the data pool
+        """
+
+        want_objects, exist_objects = self._enumerate_data_objects(ino, size)
         missing = set(want_objects) - set(exist_objects)
 
         if missing:
@@ -518,17 +529,7 @@ class Filesystem(object):
             return True
 
     def data_objects_absent(self, ino, size):
-        stripe_size = 1024 * 1024 * 4
-
-        size = max(stripe_size, size)
-
-        want_objects = [
-            "{0:x}.{1:08x}".format(ino, n)
-            for n in range(0, ((size - 1) / stripe_size) + 1)
-        ]
-
-        exist_objects = self.rados(["ls"], pool=self.get_data_pool_name()).split("\n")
-
+        want_objects, exist_objects = self._enumerate_data_objects(ino, size)
         present = set(want_objects) & set(exist_objects)
 
         if present:
