@@ -152,7 +152,7 @@ class TestStrays(CephFSTestCase):
         background_thread.join()
 
         # Check that we got up to a respectable rate during the purge.  This is totally
-        # racy, but should be safeish unless the cluster is pathalogically slow, or
+        # racy, but should be safeish unless the cluster is pathologically slow, or
         # insanely fast such that the deletions all pass before we have polled the
         # statistics.
         if throttle_type == self.OPS_THROTTLE:
@@ -337,9 +337,6 @@ class TestStrays(CephFSTestCase):
         are migrated to another MDS's stray dir.
         """
 
-        # XXX interestingly, export dir on an empty dir doesn't work.
-        # perhaps because it has no actual dirfrag at that stage?
-
         # Set up two MDSs
         self.fs.mon_manager.raw_cluster_cmd_result('mds', 'set', "max_mds", "2")
 
@@ -360,6 +357,8 @@ class TestStrays(CephFSTestCase):
                               reject_fn=lambda v: v > 2 or v < 1)
 
         # Create a file
+        # Export dir on an empty dir doesn't work, so we create the file before
+        # calling export dir in order to kick a dirfrag into existence
         size_mb = 8
         self.mount_a.run_shell(["mkdir", "ALPHA"])
         self.mount_a.write_n_mb("ALPHA/alpha_file", size_mb)
