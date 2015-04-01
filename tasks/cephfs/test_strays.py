@@ -14,6 +14,9 @@ class TestStrays(CephFSTestCase):
     OPS_THROTTLE = 1
     FILES_THROTTLE = 2
 
+    # Range of different file sizes used in throttle test's workload
+    throttle_workload_size_range = 16
+
     def test_ops_throttle(self):
         self._test_throttling(self.OPS_THROTTLE)
 
@@ -72,7 +75,7 @@ class TestStrays(CephFSTestCase):
             file_multiplier = {file_multiplier}
             os.mkdir(os.path.join(mount_path, subdir))
             for i in xrange(0, file_multiplier):
-                for size in xrange(0, 16*size_unit, size_unit):
+                for size in xrange(0, {size_range}*size_unit, size_unit):
                     filename = "{{0}}_{{1}}.bin".format(i, size / size_unit)
                     f = open(os.path.join(mount_path, subdir, filename), 'w')
                     f.write(size * 'x')
@@ -80,7 +83,8 @@ class TestStrays(CephFSTestCase):
         """.format(
             mount_path=self.mount_a.mountpoint,
             size_unit=size_unit,
-            file_multiplier=file_multiplier
+            file_multiplier=file_multiplier,
+            size_range=self.throttle_workload_size_range
         ))
 
         self.mount_a.run_python(create_script)
@@ -93,7 +97,7 @@ class TestStrays(CephFSTestCase):
 
         background_thread = gevent.spawn(background)
 
-        total_inodes = file_multiplier * 16 + 1
+        total_inodes = file_multiplier * self.throttle_workload_size_range + 1
         mds_max_purge_ops = int(self.fs.get_config("mds_max_purge_ops", 'mds'))
         mds_max_purge_files = int(self.fs.get_config("mds_max_purge_files", 'mds'))
 
