@@ -261,7 +261,7 @@ def run_qemu(ctx, config):
             '{tdir}/archive/coverage'.format(tdir=testdir),
             'daemon-helper',
             'term',
-            qemu_cmd, '-enable-kvm', '-nographic',
+            qemu_cmd, '-nographic',
             '-m', str(client_config.get('memory', DEFAULT_MEM)),
             # base OS device
             '-drive',
