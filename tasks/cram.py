@@ -68,7 +68,7 @@ def task(ctx, config):
                 assert test.endswith('.t'), 'tests must end in .t'
                 remote.run(
                     args=[
-                        'wget', '-nc', '-nv', '-P', client_dir, '--', test,
+                        'wget', '--content-disposition', '-nc', '-nv', '-P', client_dir, '--', test,
                         ],
                     )
 
